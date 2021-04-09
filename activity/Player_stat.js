@@ -13,7 +13,7 @@ function cb(error, response , html){
         extractHtml(html);
     }
 }
-
+let v=1;
 function extractHtml(html){
     let selectorTool=cheerio.load(html);
     // array of all division of the matches 
@@ -22,7 +22,7 @@ function extractHtml(html){
     for(let i=0;i<matches.length;i++){
         let matchesAnchor = selectorTool(matches[i]).find("a[class='match-info-link-FIXTURES']");
         let matchesLink="https://www.espncricinfo.com/"+selectorTool(matchesAnchor).attr("href");
-        console.log(matchesLink);
+        // console.log(matchesLink);
         pasteRecordToJsonReq(matchesLink);
     }
 }
@@ -47,29 +47,33 @@ function pasteRecordToJson(html){
     let secondTeamDiv=scorecardTable[1];
 
     // find Team Names whose match is happining ---------------
-    let firstTeamArr=selectorTool(teamNames[0]).text().split(" ").slice(0,2);
-    let firstTeam=firstTeamArr[0]+" "+firstTeamArr[1];
-    let secondTeamArr=selectorTool(teamNames[1]).text().split(" ").slice(0,2);
-    let secondTeam=secondTeamArr[0]+" "+secondTeamArr[1];
-      
-        //----- First Team played ----
-        let firstTeamFolderPath=path.join("F:\\WebDev\\Player_statistic\\activity\\Teams",firstTeam);
-        createDir(firstTeamFolderPath);
-        let firstTabSingleBatsman=selectorTool(scorecardTable[0]).find("tbody tr");
-        // iteration in batsman table
-        for(let i=0;i<firstTabSingleBatsman.length-1;i=i+2){
-            let allCol=selectorTool(firstTabSingleBatsman[i]).find("td");
-            let batsmanName=selectorTool(allCol[0]).text();
-            let batsmanJsonFilePath=path.join(firstTeamFolderPath,batsmanName+".json");
-            createfile(batsmanJsonFilePath);
-        
-        }
+    // let firstTeamArr=selectorTool(teamNames[0]).text().split(" ").slice(0,2);
+    // let firstTeam=firstTeamArr[0]+" "+firstTeamArr[1];
+    // let secondTeamArr=selectorTool(teamNames[1]).text().split(" ").slice(0,2);
+    // let secondTeam=secondTeamArr[0]+" "+secondTeamArr[1];
+    
+    // Team Loop  
+    for(let j=0;j<2;j++){
+        // find team name
+        let teamArr=selectorTool(teamNames[j]).text().split(" ").slice(0,2);
+        let teamName=teamArr[0]+" "+teamArr[1];
+        // path to create the team folder 
+        let teamFolderPath=path.join("F:\\WebDev\\Player_statistic\\activity\\Teams",teamName);
+        createDir(teamFolderPath);
 
-        let secondTeamFolderPath=path.join("F:\WebDev\Player_statistic\activity\Teams",secondTeam);
-    createDir(secondTeamFolderPath);
+        // find scorecard and player runs 
+        let tabSingleBatsman=selectorTool(scorecardTable[j]).find("tbody tr");
+        for(let i=0;i<tabSingleBatsman.length-1;i=i+2){
+            let allCol=selectorTool(tabSingleBatsman[i]).find("td");
+            let batsmanName=selectorTool(allCol[0]).text();
+            let batsmanJsonFilePath=path.join(teamFolderPath,batsmanName+".json");
+            createfile(batsmanJsonFilePath);
+        }
+    }
+
     //---------------------------
 
-
+    console.log(v++ +" team completed!");
 }
 
 
