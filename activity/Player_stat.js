@@ -18,27 +18,32 @@ function extractHtml(html){
     let selectorTool=cheerio.load(html);
     // array of all division of the matches 
     let matches=selectorTool(".col-md-8.col-16");
+    let discriptionDiv=selectorTool(".match-info.match-info-FIXTURES");
 
     for(let i=0;i<matches.length;i++){
+        // find the discription
+        let discriptionTab=selectorTool(discriptionDiv[i]).find("div[class='description']");
         let matchesAnchor = selectorTool(matches[i]).find("a[class='match-info-link-FIXTURES']");
         let matchesLink="https://www.espncricinfo.com/"+selectorTool(matchesAnchor).attr("href");
-        // console.log(matchesLink);
-        pasteRecordToJsonReq(matchesLink);
+        let discription=selectorTool(discriptionTab).text().split(",");
+        
+        // discription[1] -> Venue     discription[2] -> date
+        pasteRecordToJsonReq(matchesLink , discription[1] , discription[2]);
     }
 }
 
-function pasteRecordToJsonReq(matchesLink){
+function pasteRecordToJsonReq(matchesLink , venue , date){
     request(matchesLink,cb);
     function cb(err , response , html){
         if(err){
             console.log(err);
         }else{
-            pasteRecordToJson(html);
+            pasteRecordToJson(html , venue , date);
         }
     }
 }
 
-function pasteRecordToJson(html){
+function pasteRecordToJson(html , venue , date){
     let selectorTool=cheerio.load(html);
 
     let scorecardTable=selectorTool(".table.batsman");
@@ -61,13 +66,39 @@ function pasteRecordToJson(html){
         let teamFolderPath=path.join("F:\\WebDev\\Player_statistic\\activity\\Teams",teamName);
         createDir(teamFolderPath);
 
+        let arr=[];
         // find scorecard and player runs 
         let tabSingleBatsman=selectorTool(scorecardTable[j]).find("tbody tr");
         for(let i=0;i<tabSingleBatsman.length-1;i=i+2){
             let allCol=selectorTool(tabSingleBatsman[i]).find("td");
+
+
+            // 23567
             let batsmanName=selectorTool(allCol[0]).text();
+            let batsmanRun=selectorTool(allCol[2]).text();
+            let batsmanBall=selectorTool(allCol[3]).text();
+            let batsmanFour=selectorTool(allCol[5]).text();
+            let batsmanSix=selectorTool(allCol[6]).text();
+            let batsmanSR=selectorTool(allCol[7]).text();
+            
             let batsmanJsonFilePath=path.join(teamFolderPath,batsmanName+".json");
             createfile(batsmanJsonFilePath);
+
+
+            // let content=fs.readFileSync(batsmanJsonFilePath);
+            // let json = JSON.parse(content); 
+            // write in json file 
+            arr.push({
+                "Runs : ": batsmanRun,
+                "Balls : ": batsmanBall,
+                "Four : ": batsmanFour,
+                "Six : ": batsmanSix,
+                "Strike Rate : ": batsmanSR,
+                "Venue : ": venue,
+                "Date : ":date
+                
+            });
+            fs.writeFileSync( batsmanJsonFilePath, JSON.stringify(arr));
         }
     }
 
